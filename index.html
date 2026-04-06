@@ -520,26 +520,6 @@ body{
     </div>
   </div>
 
-  <!-- Step 16: 欲しい機能 -->
-  <div class="step" data-step="16">
-    <div class="step-section">ご要望</div>
-    <div class="step-question">あったら嬉しい機能を全て選んでください。<span class="optional">任意</span></div>
-    <div class="step-note">複数選択可・該当なしの場合はそのまま次へ</div>
-    <div class="choice-list" id="q_wish">
-      <label class="choice-item multi" data-value="グルメサイト自動連携"><span class="indicator"></span>グルメサイト自動連携</label>
-      <label class="choice-item multi" data-value="リマインド自動送信"><span class="indicator"></span>予約リマインド自動送信</label>
-      <label class="choice-item multi" data-value="キャンセル待ち管理"><span class="indicator"></span>キャンセル待ち管理</label>
-      <label class="choice-item multi" data-value="売上・来客予測"><span class="indicator"></span>売上・来客数の予測</label>
-      <label class="choice-item multi" data-value="顧客分析"><span class="indicator"></span>顧客分析・リピート率表示</label>
-      <label class="choice-item multi" data-value="フロアマップ連携"><span class="indicator"></span>フロアマップとの連携</label>
-      <label class="choice-item multi" data-value="多言語対応"><span class="indicator"></span>多言語対応（インバウンド）</label>
-      <label class="choice-item multi" data-value="その他"><span class="indicator"></span>その他</label>
-    </div>
-    <div class="sub-question" id="q_wish_other_wrap" style="display:none">
-      <div class="sub-label">その他の内容を教えてください。</div>
-      <textarea class="text-input" id="q_wish_other" placeholder="ほしい機能を教えてください"></textarea>
-    </div>
-  </div>
 
   <!-- Step 17: おすすめ度（5段階） -->
   <div class="step" data-step="17">
@@ -608,7 +588,7 @@ function getVisibleSteps() {
   const ov = parseInt(answers.overall);
   if (ov >= 50) list.push(6);
   if (ov <= -50) list.push(7);
-  list.push(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19);
+  list.push(8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19);
   return list;
 }
 
@@ -618,7 +598,7 @@ const sectionLabels = {
   8:'予約登録', 9:'予約登録',
   10:'画面・UI', 11:'テーブル管理',
   12:'業務フィット', 13:'業務フィット',
-  14:'比較', 15:'気になる点', 16:'ご要望',
+  14:'比較', 15:'気になる点',
   17:'おすすめ度', 18:'最後に', 19:'最後に'
 };
 
@@ -688,7 +668,7 @@ function collectTextForStep(step) {
   const textMap = {
     6: ['satisfy_reason'], 7: ['improve_reason'],
     14: ['prev_better'], 15: ['pain_other'],
-    16: ['wish_other'], 18: ['top_improvement'], 19: ['comment']
+    18: ['top_improvement'], 19: ['comment']
   };
   if (textMap[step]) {
     textMap[step].forEach(key => {
@@ -797,7 +777,7 @@ setupSingleChoice('q_busy', 'busy');
 setupSingleChoice('q_share', 'share');
 setupSingleChoice('q_comparison', 'comparison');
 setupMultiChoice('q_pain', 'pain');
-setupMultiChoice('q_wish', 'wish');
+
 setupSingleChoice('q_nps', 'nps');
 
 showStep(0);
