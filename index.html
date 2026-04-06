@@ -198,37 +198,6 @@ body{
   background:var(--bg1);padding:8px 16px;border-radius:20px;
 }
 
-.pw-overlay{
-  position:fixed;inset:0;z-index:9999;
-  background:var(--black);
-  display:flex;align-items:center;justify-content:center;
-  transition:opacity .4s ease;
-}
-.pw-overlay.hidden{opacity:0;pointer-events:none}
-.pw-card{
-  width:min(320px,90vw);background:var(--g8);border-radius:16px;
-  padding:36px 28px;text-align:center;
-}
-.pw-card h2{font-size:16px;color:var(--white);font-weight:700;margin-bottom:6px}
-.pw-card p{font-size:12px;color:var(--g4);margin-bottom:24px}
-.pw-input{
-  width:100%;padding:14px 16px;font-size:15px;
-  border:2px solid var(--g7);border-radius:var(--radius);
-  background:var(--black);color:var(--white);
-  font-family:inherit;text-align:center;letter-spacing:.1em;
-  transition:border-color .2s;
-}
-.pw-input:focus{outline:none;border-color:var(--bg6)}
-.pw-input::placeholder{color:var(--g6);letter-spacing:0}
-.pw-btn{
-  width:100%;margin-top:12px;padding:14px;
-  background:var(--bg8);color:var(--white);
-  border:none;border-radius:var(--radius);
-  font-size:15px;font-weight:700;cursor:pointer;
-  font-family:inherit;transition:background .2s;
-}
-.pw-btn:active{background:var(--bg7)}
-.pw-error{font-size:12px;color:var(--attention);margin-top:10px;min-height:18px}
 
 /* ── Responsive: Tablet & Desktop ── */
 @media(min-width:600px){
@@ -291,16 +260,6 @@ body{
 </head>
 <body>
 
-<!-- Password Gate -->
-<div class="pw-overlay" id="pwOverlay">
-  <div class="pw-card">
-    <h2>プロトタイプ確認用</h2>
-    <p>パスワードを入力してください</p>
-    <input type="password" class="pw-input" id="pwInput" placeholder="パスワード" autocomplete="off">
-    <button class="pw-btn" id="pwBtn">確認</button>
-    <div class="pw-error" id="pwError"></div>
-  </div>
-</div>
 
 <div class="header">
   <h1>予約台帳 使い心地アンケート</h1>
@@ -631,29 +590,6 @@ body{
 </div>
 
 <script>
-// ── Password Gate ──
-const HASH = '14d1b40d8b1330c571532a7082b6106667cc8e67554bdd7da3785a31e38f47de';
-async function sha256(str){
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-(function(){
-  if(sessionStorage.getItem('pw_ok')==='1'){
-    document.getElementById('pwOverlay').classList.add('hidden');
-  }
-  const inp=document.getElementById('pwInput'),btn=document.getElementById('pwBtn'),err=document.getElementById('pwError');
-  async function check(){
-    const h=await sha256(inp.value);
-    if(h===HASH){
-      sessionStorage.setItem('pw_ok','1');
-      document.getElementById('pwOverlay').classList.add('hidden');
-    } else {
-      err.textContent='パスワードが違います';inp.value='';inp.focus();
-    }
-  }
-  btn.addEventListener('click',check);
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
-})();
 
 const answers = {};
 let currentStep = 0;
