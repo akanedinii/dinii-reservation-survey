@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>予約台帳 使い心地アンケート | dinii</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#282828;
+  --g8:#3F4042;--g7:#54565A;--g6:#6A6D71;--g5:#7F8389;
+  --g4:#949AA0;--g3:#AAB0B8;--g2:#BFC7D0;--g1:#D5DDE7;
+  --light-gray:#EAF4FF;--white:#FFFFFF;
+  --bg8:#56698F;--bg7:#687A9D;--bg6:#7B8CAB;--bg5:#8D9DB9;
+  --bg4:#A0AFC7;--bg3:#B2C0D5;--bg2:#C5D1E3;--bg1:#D7E3F1;
+  --attention:#FF0046;
+  --primary:var(--bg8);
+  --primary-light:var(--bg4);
+  --bg:var(--light-gray);
+  --card:var(--white);
+  --text:var(--black);
+  --text-sub:var(--g6);
+  --border:var(--g1);
+  --selected-bg:var(--bg1);
+  --radius:12px;
+}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100dvh;overflow-x:hidden;
+  display:flex;flex-direction:column;
+}
+
+.header{
+  background:var(--black);color:var(--white);
+  padding:16px 20px 12px;text-align:center;
+  position:sticky;top:0;z-index:100;
+}
+.header h1{font-size:14px;font-weight:600;letter-spacing:.04em;opacity:.9}
+.header .store-name{font-size:11px;color:var(--g4);margin-top:2px}
+
+.progress-wrap{
+  background:var(--white);padding:12px 20px 8px;
+  position:sticky;top:52px;z-index:99;
+  border-bottom:1px solid var(--border);
+}
+.progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.progress-label{font-size:11px;color:var(--text-sub)}
+.progress-count{font-size:11px;color:var(--primary);font-weight:700}
+.progress-bar{height:4px;background:var(--g2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--bg8),var(--bg4));border-radius:2px;transition:width .4s ease}
+
+.main{flex:1;padding:20px 16px 120px;position:relative}
+
+.step{display:none;animation:fadeUp .35s ease}
+.step.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.step-section{font-size:11px;color:var(--bg7);font-weight:700;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase}
+.step-question{font-size:17px;font-weight:700;line-height:1.55;margin-bottom:4px;color:var(--black)}
+.step-note{font-size:12px;color:var(--g5);margin-bottom:20px;line-height:1.5}
+.required{
+  display:inline-block;font-size:10px;background:var(--attention);color:#fff;
+  padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;font-weight:600;
+}
+.optional{
+  display:inline-block;font-size:10px;background:var(--g4);color:#fff;
+  padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle;font-weight:600;
+}
+
+.choice-list{display:flex;flex-direction:column;gap:8px}
+.choice-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;background:var(--card);
+  border:2px solid var(--border);border-radius:var(--radius);
+  cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+  user-select:none;font-size:14px;line-height:1.4;color:var(--g8);
+}
+.choice-item:active{transform:scale(.98)}
+.choice-item.selected{border-color:var(--primary);background:var(--selected-bg);color:var(--black)}
+.choice-item .indicator{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--g2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.choice-item.selected .indicator{border-color:var(--primary);background:var(--primary)}
+.choice-item.selected .indicator::after{
+  content:'';width:8px;height:8px;background:#fff;border-radius:50%;
+}
+.choice-item.multi .indicator{border-radius:5px}
+.choice-item.multi.selected .indicator::after{
+  content:'✓';width:auto;height:auto;background:none;
+  color:#fff;font-size:13px;font-weight:700;border-radius:0;
+}
+
+.sat-scale{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sat-btn{
+  flex:1;min-width:0;padding:14px 4px 12px;
+  background:var(--card);border:2px solid var(--border);border-radius:var(--radius);
+  text-align:center;cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.sat-btn:active{transform:scale(.95)}
+.sat-num{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;margin:0 auto 6px;
+  font-size:15px;font-weight:700;color:#fff;transition:transform .2s;
+}
+.sat-btn[data-value="-100"] .sat-num{background:#E05252}
+.sat-btn[data-value="-50"] .sat-num{background:#F0943A}
+.sat-btn[data-value="0"] .sat-num{background:#E8C840;color:#6B5E00}
+.sat-btn[data-value="50"] .sat-num{background:#5DB86C}
+.sat-btn[data-value="100"] .sat-num{background:#3A9E4A}
+.sat-btn .sat-label{font-size:10px;color:var(--g5);line-height:1.3;display:block}
+.sat-btn.selected{border-color:var(--g7);background:var(--selected-bg)}
+.sat-btn.selected .sat-num{transform:scale(1.15)}
+.sat-btn.selected .sat-label{color:var(--black);font-weight:700}
+.sat-btn[data-value="-100"].selected{border-color:#E05252;background:rgba(224,82,82,.08)}
+.sat-btn[data-value="-50"].selected{border-color:#F0943A;background:rgba(240,148,58,.08)}
+.sat-btn[data-value="0"].selected{border-color:#D4B53A;background:rgba(232,200,64,.08)}
+.sat-btn[data-value="50"].selected{border-color:#5DB86C;background:rgba(93,184,108,.08)}
+.sat-btn[data-value="100"].selected{border-color:#3A9E4A;background:rgba(58,158,74,.08)}
+
+.nps-row{display:flex;gap:4px;margin-bottom:8px}
+.nps-btn{
+  flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  background:var(--card);border:2px solid var(--border);border-radius:10px;
+  font-size:15px;font-weight:700;color:var(--g6);cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.nps-btn:active{transform:scale(.9)}
+.nps-btn.selected{border-color:var(--primary);background:var(--primary);color:#fff}
+.nps-labels{display:flex;justify-content:space-between;padding:0 4px}
+.nps-labels span{font-size:10px;color:var(--g5)}
+
+.yn-row{display:flex;gap:10px}
+.yn-btn{
+  flex:1;padding:18px;text-align:center;
+  background:var(--card);border:2px solid var(--border);border-radius:var(--radius);
+  font-size:15px;font-weight:600;color:var(--g7);cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.yn-btn:active{transform:scale(.97)}
+.yn-btn.selected{border-color:var(--primary);background:var(--selected-bg);color:var(--primary)}
+
+.text-input{
+  width:100%;padding:14px 16px;font-size:15px;
+  border:2px solid var(--border);border-radius:var(--radius);
+  background:var(--card);resize:vertical;min-height:100px;
+  font-family:inherit;color:var(--text);
+  transition:border-color .2s;line-height:1.5;
+}
+.text-input:focus{outline:none;border-color:var(--bg6)}
+.text-input::placeholder{color:var(--g3)}
+
+.sub-question{
+  margin-top:20px;padding-top:20px;
+  border-top:1px solid var(--border);
+}
+.sub-label{font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.5;color:var(--g7)}
+
+.footer-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--white);border-top:1px solid var(--border);
+  padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  display:flex;gap:10px;z-index:100;
+}
+.btn{
+  flex:1;padding:15px;border:none;border-radius:var(--radius);
+  font-size:15px;font-weight:700;cursor:pointer;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.97)}
+.btn-back{background:var(--g1);color:var(--g6)}
+.btn-next{background:var(--black);color:var(--white)}
+.btn-next:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.btn-submit{background:var(--bg8);color:var(--white)}
+
+.complete-screen{text-align:center;padding:60px 20px}
+.complete-icon{font-size:64px;margin-bottom:16px}
+.complete-title{font-size:22px;font-weight:800;margin-bottom:8px;color:var(--black)}
+.complete-msg{font-size:14px;color:var(--g6);line-height:1.7}
+
+.intro-card{
+  background:var(--card);border-radius:var(--radius);
+  padding:32px 24px;text-align:center;
+  box-shadow:0 2px 8px rgba(40,40,40,.08);
+}
+.intro-icon{font-size:48px;margin-bottom:12px}
+.intro-title{font-size:20px;font-weight:800;margin-bottom:8px;color:var(--black)}
+.intro-desc{font-size:13px;color:var(--g6);line-height:1.7;margin-bottom:24px}
+.intro-time{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;color:var(--bg7);
+  background:var(--bg1);padding:8px 16px;border-radius:20px;
+}
+
+.pw-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--black);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .4s ease;
+}
+.pw-overlay.hidden{opacity:0;pointer-events:none}
+.pw-card{
+  width:min(320px,90vw);background:var(--g8);border-radius:16px;
+  padding:36px 28px;text-align:center;
+}
+.pw-card h2{font-size:16px;color:var(--white);font-weight:700;margin-bottom:6px}
+.pw-card p{font-size:12px;color:var(--g4);margin-bottom:24px}
+.pw-input{
+  width:100%;padding:14px 16px;font-size:15px;
+  border:2px solid var(--g7);border-radius:var(--radius);
+  background:var(--black);color:var(--white);
+  font-family:inherit;text-align:center;letter-spacing:.1em;
+  transition:border-color .2s;
+}
+.pw-input:focus{outline:none;border-color:var(--bg6)}
+.pw-input::placeholder{color:var(--g6);letter-spacing:0}
+.pw-btn{
+  width:100%;margin-top:12px;padding:14px;
+  background:var(--bg8);color:var(--white);
+  border:none;border-radius:var(--radius);
+  font-size:15px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:background .2s;
+}
+.pw-btn:active{background:var(--bg7)}
+.pw-error{font-size:12px;color:var(--attention);margin-top:10px;min-height:18px}
+
+/* ── Responsive: Tablet & Desktop ── */
+@media(min-width:600px){
+  .header{padding:20px 32px 16px}
+  .header h1{font-size:16px}
+  .header .store-name{font-size:12px}
+  .progress-wrap{padding:14px 24px 10px}
+  .progress-wrap>.progress-info,
+  .progress-wrap>.progress-bar{max-width:560px;margin-left:auto;margin-right:auto}
+  .main{max-width:560px;margin:0 auto;padding:28px 20px 120px}
+  .footer-nav{padding:14px 24px;padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+  .footer-nav .btn{max-width:280px;margin:0 auto}
+  .step-question{font-size:19px}
+  .step-note{font-size:13px}
+  .choice-item{padding:16px 20px;font-size:15px}
+  .sat-btn{padding:16px 8px}
+  .sat-num{width:40px;height:40px;font-size:16px}
+  .sat-btn .sat-label{font-size:11px}
+  .nps-btn{font-size:16px}
+  .nps-row{max-width:440px;margin-left:auto;margin-right:auto;margin-bottom:8px}
+  .nps-labels{max-width:440px;margin-left:auto;margin-right:auto}
+  .text-input{font-size:16px;padding:16px 20px}
+  .intro-card{padding:40px 32px}
+  .intro-title{font-size:22px}
+  .intro-desc{font-size:14px}
+  .btn{padding:16px;font-size:16px}
+  .sub-label{font-size:15px}
+  .yn-row{max-width:400px}
+  .sat-scale{max-width:480px;margin-left:auto;margin-right:auto}
+  .complete-screen{padding:80px 32px}
+}
+@media(min-width:1024px){
+  .progress-wrap{padding:14px 32px 10px}
+  .progress-wrap>.progress-info,
+  .progress-wrap>.progress-bar{max-width:640px}
+  .main{max-width:640px;padding:36px 20px 120px}
+  .footer-nav{padding:16px 32px;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .footer-nav .btn{max-width:300px}
+  .step-question{font-size:20px}
+  .choice-item{padding:18px 24px;font-size:16px;border-radius:14px}
+  .choice-item .indicator{width:24px;height:24px}
+  .sat-scale{max-width:540px}
+  .sat-btn{padding:20px 12px;border-radius:14px}
+  .sat-num{width:44px;height:44px;font-size:17px}
+  .sat-btn .sat-label{font-size:12px}
+  .nps-row{max-width:500px}
+  .nps-btn{font-size:17px;border-radius:12px}
+  .nps-labels{max-width:500px}
+  .intro-card{padding:48px 40px;border-radius:16px}
+  .intro-title{font-size:24px}
+  .intro-desc{font-size:15px}
+  .yn-row{max-width:440px}
+  .yn-btn{padding:22px;font-size:16px;border-radius:14px}
+  .btn{border-radius:14px}
+  .complete-screen{padding:100px 40px}
+  .complete-title{font-size:24px}
+  .complete-msg{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div class="pw-overlay" id="pwOverlay">
+  <div class="pw-card">
+    <h2>プロトタイプ確認用</h2>
+    <p>パスワードを入力してください</p>
+    <input type="password" class="pw-input" id="pwInput" placeholder="パスワード" autocomplete="off">
+    <button class="pw-btn" id="pwBtn">確認</button>
+    <div class="pw-error" id="pwError"></div>
+  </div>
+</div>
+
+<div class="header">
+  <h1>予約台帳 使い心地アンケート</h1>
+  <div class="store-name">dinii</div>
+</div>
+
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-info">
+    <span class="progress-label" id="progressLabel"></span>
+    <span class="progress-count" id="progressCount"></span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="main" id="main">
+
+  <!-- Step 0: Intro -->
+  <div class="step active" data-step="0">
+    <div class="intro-card">
+      <div class="intro-icon">📋</div>
+      <div class="intro-title">予約台帳の使い心地<br>アンケート</div>
+      <div class="intro-desc">
+        ダイニーの予約台帳をご利用いただきありがとうございます。<br>
+        より使いやすいサービスにするため、率直なご意見をお聞かせください。
+      </div>
+      <div class="intro-time">🕐 所要時間：約3分</div>
+    </div>
+  </div>
+
+  <!-- Step 1: 店舗名・お名前 -->
+  <div class="step" data-step="1">
+    <div class="step-section">ご回答者について</div>
+    <div class="step-question">店舗名とお名前を入力してください。</div>
+    <div class="step-note"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <div class="sub-label">店舗名 <span class="required">必須</span></div>
+        <input type="text" class="text-input" id="q_store" placeholder="例：渋谷店" style="min-height:auto;resize:none;padding:12px 16px">
+      </div>
+      <div>
+        <div class="sub-label">お名前 <span class="optional">任意</span></div>
+        <input type="text" class="text-input" id="q_name" placeholder="例：山田太郎" style="min-height:auto;resize:none;padding:12px 16px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: 役職 -->
+  <div class="step" data-step="2">
+    <div class="step-section">ご回答者について</div>
+    <div class="step-question">あなたの役職を教えてください。<span class="required">必須</span></div>
+    <div class="step-note">1つ選択してください</div>
+    <div class="choice-list" id="q_role">
+      <label class="choice-item" data-value="オーナー"><span class="indicator"></span>オーナー</label>
+      <label class="choice-item" data-value="店長"><span class="indicator"></span>店長</label>
+      <label class="choice-item" data-value="社員"><span class="indicator"></span>社員</label>
+      <label class="choice-item" data-value="アルバイト"><span class="indicator"></span>アルバイト</label>
+    </div>
+  </div>
+
+  <!-- Step 3: 利用頻度 -->
+  <div class="step" data-step="3">
+    <div class="step-section">ご利用状況</div>
+    <div class="step-question">予約台帳をどのくらいの頻度で使っていますか？<span class="required">必須</span></div>
+    <div class="step-note">1つ選択してください</div>
+    <div class="choice-list" id="q_frequency">
+      <label class="choice-item" data-value="毎日"><span class="indicator"></span>毎日</label>
+      <label class="choice-item" data-value="週3〜4回"><span class="indicator"></span>週3〜4回</label>
+      <label class="choice-item" data-value="週1〜2回"><span class="indicator"></span>週1〜2回</label>
+      <label class="choice-item" data-value="それ以下"><span class="indicator"></span>月に数回以下</label>
+    </div>
+  </div>
+
+  <!-- Step 4: 以前の方法 -->
+  <div class="step" data-step="4">
+    <div class="step-section">ご利用状況</div>
+    <div class="step-question">ダイニー導入前の予約管理方法を教えてください。<span class="required">必須</span></div>
+    <div class="step-note">1つ選択してください</div>
+    <div class="choice-list" id="q_prev_method">
+      <label class="choice-item" data-value="紙の台帳"><span class="indicator"></span>紙の台帳</label>
+      <label class="choice-item" data-value="他社予約システム"><span class="indicator"></span>他社の予約システム</label>
+      <label class="choice-item" data-value="電話のみ"><span class="indicator"></span>電話のみ（台帳なし）</label>
+      <label class="choice-item" data-value="グルメサイト経由"><span class="indicator"></span>グルメサイト経由のみ</label>
+      <label class="choice-item" data-value="なし"><span class="indicator"></span>予約管理していなかった</label>
+      <label class="choice-item" data-value="その他"><span class="indicator"></span>その他</label>
+    </div>
+  </div>
+
+  <!-- Step 5: 総合満足度 -->
+  <div class="step" data-step="5">
+    <div class="step-section">総合評価</div>
+    <div class="step-question">予約台帳の総合的な満足度を教えてください。<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_overall">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">不満足</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>不満足</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>満足</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">満足</span></div>
+    </div>
+  </div>
+
+  <!-- Step 6: 満足ポイント (conditional: overall >= 50) -->
+  <div class="step" data-step="6" data-condition="overall_high">
+    <div class="step-section">総合評価</div>
+    <div class="step-question">最も満足している点を教えてください。<span class="required">必須</span></div>
+    <div class="step-note">1つ選択してください</div>
+    <div class="choice-list" id="q_satisfy_point">
+      <label class="choice-item" data-value="予約の登録しやすさ"><span class="indicator"></span>予約の登録しやすさ</label>
+      <label class="choice-item" data-value="一覧の見やすさ"><span class="indicator"></span>予約一覧の見やすさ</label>
+      <label class="choice-item" data-value="席の割り当て"><span class="indicator"></span>席の割り当て機能</label>
+      <label class="choice-item" data-value="検索・絞り込み"><span class="indicator"></span>検索・絞り込み</label>
+      <label class="choice-item" data-value="動作の速さ"><span class="indicator"></span>動作の速さ</label>
+      <label class="choice-item" data-value="顧客情報管理"><span class="indicator"></span>顧客情報の管理</label>
+    </div>
+    <div class="sub-question">
+      <div class="sub-label">満足している理由を教えてください。<span class="optional">任意</span></div>
+      <textarea class="text-input" id="q_satisfy_reason" placeholder="具体的に教えていただけると嬉しいです"></textarea>
+    </div>
+  </div>
+
+  <!-- Step 7: 改善ポイント (conditional: overall <= -50) -->
+  <div class="step" data-step="7" data-condition="overall_low">
+    <div class="step-section">総合評価</div>
+    <div class="step-question">最も改善が必要な点を教えてください。<span class="required">必須</span></div>
+    <div class="step-note">1つ選択してください</div>
+    <div class="choice-list" id="q_improve_point">
+      <label class="choice-item" data-value="予約の登録しやすさ"><span class="indicator"></span>予約の登録しやすさ</label>
+      <label class="choice-item" data-value="一覧の見やすさ"><span class="indicator"></span>予約一覧の見やすさ</label>
+      <label class="choice-item" data-value="席の割り当て"><span class="indicator"></span>席の割り当て機能</label>
+      <label class="choice-item" data-value="検索・絞り込み"><span class="indicator"></span>検索・絞り込み</label>
+      <label class="choice-item" data-value="動作の速さ"><span class="indicator"></span>動作の速さ</label>
+      <label class="choice-item" data-value="顧客情報管理"><span class="indicator"></span>顧客情報の管理</label>
+    </div>
+    <div class="sub-question">
+      <div class="sub-label">改善が必要な理由を教えてください。<span class="optional">任意</span></div>
+      <textarea class="text-input" id="q_improve_reason" placeholder="具体的に教えていただけると嬉しいです"></textarea>
+    </div>
+  </div>
+
+  <!-- Step 8: 予約登録 -->
+  <div class="step" data-step="8">
+    <div class="step-section">予約登録</div>
+    <div class="step-question">予約の新規登録はスムーズにできますか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_booking">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">不満足</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>不満足</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>満足</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">満足</span></div>
+    </div>
+  </div>
+
+  <!-- Step 9: 電話しながら操作 -->
+  <div class="step" data-step="9">
+    <div class="step-section">予約登録</div>
+    <div class="step-question">電話を受けながら片手で予約登録できていますか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="yn-row" id="q_one_hand">
+      <div class="yn-btn" data-value="はい">できている</div>
+      <div class="yn-btn" data-value="いいえ">難しい</div>
+    </div>
+  </div>
+
+  <!-- Step 10: 画面の見やすさ -->
+  <div class="step" data-step="10">
+    <div class="step-section">画面・UI</div>
+    <div class="step-question">予約一覧画面の見やすさはいかがですか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_ui">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">見にくい</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>見にくい</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>見やすい</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">見やすい</span></div>
+    </div>
+  </div>
+
+  <!-- Step 11: 席割り当て -->
+  <div class="step" data-step="11">
+    <div class="step-section">テーブル管理</div>
+    <div class="step-question">席の割り当て・テーブル管理は使いやすいですか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_table">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">不満足</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>不満足</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>満足</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">満足</span></div>
+    </div>
+  </div>
+
+  <!-- Step 12: 忙しい時間帯 -->
+  <div class="step" data-step="12">
+    <div class="step-section">業務フィット</div>
+    <div class="step-question">営業中の忙しい時間帯でもスムーズに操作できていますか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_busy">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">全く<br>できない</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">あまり<br>できない</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">概ね<br>できる</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">問題なく<br>できる</span></div>
+    </div>
+  </div>
+
+  <!-- Step 13: スタッフ共有 -->
+  <div class="step" data-step="13">
+    <div class="step-section">業務フィット</div>
+    <div class="step-question">スタッフ間での予約情報の共有はスムーズですか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_share">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">不満足</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>不満足</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>満足</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">満足</span></div>
+    </div>
+  </div>
+
+  <!-- Step 14: 以前との比較 -->
+  <div class="step" data-step="14">
+    <div class="step-section">比較</div>
+    <div class="step-question">以前の方法と比べて、予約管理は改善されましたか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_comparison">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">悪化</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">やや<br>悪化</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">変わら<br>ない</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>改善</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">改善</span></div>
+    </div>
+    <div class="sub-question">
+      <div class="sub-label">以前のほうが良かった点があれば教えてください。<span class="optional">任意</span></div>
+      <textarea class="text-input" id="q_prev_better" placeholder="例：紙のほうがひと目で全体把握できた"></textarea>
+    </div>
+  </div>
+
+  <!-- Step 15: 不満点 -->
+  <div class="step" data-step="15">
+    <div class="step-section">気になる点</div>
+    <div class="step-question">使っていて困っていること・不満な点があれば全て選んでください。<span class="optional">任意</span></div>
+    <div class="step-note">複数選択可・該当なしの場合はそのまま次へ</div>
+    <div class="choice-list" id="q_pain">
+      <label class="choice-item multi" data-value="動作が遅い"><span class="indicator"></span>動作が遅い・もたつく</label>
+      <label class="choice-item multi" data-value="入力項目が多い"><span class="indicator"></span>入力項目が多すぎる</label>
+      <label class="choice-item multi" data-value="画面が見にくい"><span class="indicator"></span>画面が見にくい</label>
+      <label class="choice-item multi" data-value="検索しにくい"><span class="indicator"></span>予約の検索がしにくい</label>
+      <label class="choice-item multi" data-value="変更が手間"><span class="indicator"></span>予約変更・キャンセルが手間</label>
+      <label class="choice-item multi" data-value="席割り当てが難しい"><span class="indicator"></span>席の割り当てが難しい</label>
+      <label class="choice-item multi" data-value="顧客情報が使いにくい"><span class="indicator"></span>顧客情報が使いにくい</label>
+      <label class="choice-item multi" data-value="グルメサイト連携"><span class="indicator"></span>グルメサイト連携が不十分</label>
+      <label class="choice-item multi" data-value="その他"><span class="indicator"></span>その他</label>
+    </div>
+    <div class="sub-question" id="q_pain_other_wrap" style="display:none">
+      <div class="sub-label">その他の内容を教えてください。</div>
+      <textarea class="text-input" id="q_pain_other" placeholder="具体的な内容をご記入ください"></textarea>
+    </div>
+  </div>
+
+  <!-- Step 16: 欲しい機能 -->
+  <div class="step" data-step="16">
+    <div class="step-section">ご要望</div>
+    <div class="step-question">あったら嬉しい機能を全て選んでください。<span class="optional">任意</span></div>
+    <div class="step-note">複数選択可・該当なしの場合はそのまま次へ</div>
+    <div class="choice-list" id="q_wish">
+      <label class="choice-item multi" data-value="グルメサイト自動連携"><span class="indicator"></span>グルメサイト自動連携</label>
+      <label class="choice-item multi" data-value="リマインド自動送信"><span class="indicator"></span>予約リマインド自動送信</label>
+      <label class="choice-item multi" data-value="キャンセル待ち管理"><span class="indicator"></span>キャンセル待ち管理</label>
+      <label class="choice-item multi" data-value="売上・来客予測"><span class="indicator"></span>売上・来客数の予測</label>
+      <label class="choice-item multi" data-value="顧客分析"><span class="indicator"></span>顧客分析・リピート率表示</label>
+      <label class="choice-item multi" data-value="フロアマップ連携"><span class="indicator"></span>フロアマップとの連携</label>
+      <label class="choice-item multi" data-value="多言語対応"><span class="indicator"></span>多言語対応（インバウンド）</label>
+      <label class="choice-item multi" data-value="その他"><span class="indicator"></span>その他</label>
+    </div>
+    <div class="sub-question" id="q_wish_other_wrap" style="display:none">
+      <div class="sub-label">その他の内容を教えてください。</div>
+      <textarea class="text-input" id="q_wish_other" placeholder="ほしい機能を教えてください"></textarea>
+    </div>
+  </div>
+
+  <!-- Step 17: おすすめ度（5段階） -->
+  <div class="step" data-step="17">
+    <div class="step-section">おすすめ度</div>
+    <div class="step-question">ダイニーの予約台帳を他の飲食店にお勧めしますか？<span class="required">必須</span></div>
+    <div class="step-note"></div>
+    <div class="sat-scale" id="q_nps">
+      <div class="sat-btn" data-value="-100"><span class="sat-num">1</span><span class="sat-label">お勧め<br>しない</span></div>
+      <div class="sat-btn" data-value="-50"><span class="sat-num">2</span><span class="sat-label">あまりお勧め<br>しない</span></div>
+      <div class="sat-btn" data-value="0"><span class="sat-num">3</span><span class="sat-label">普通</span></div>
+      <div class="sat-btn" data-value="50"><span class="sat-num">4</span><span class="sat-label">やや<br>お勧め</span></div>
+      <div class="sat-btn" data-value="100"><span class="sat-num">5</span><span class="sat-label">お勧め<br>する</span></div>
+    </div>
+  </div>
+
+  <!-- Step 18: 最も改善してほしい点 -->
+  <div class="step" data-step="18">
+    <div class="step-section">最後に</div>
+    <div class="step-question">最も改善してほしい点を1つ教えてください。<span class="optional">任意</span></div>
+    <div class="step-note">率直なご意見をお聞かせください</div>
+    <textarea class="text-input" id="q_top_improvement" placeholder="例：予約変更をもっと少ないタップでできるようにしてほしい"></textarea>
+  </div>
+
+  <!-- Step 19: 自由記述 -->
+  <div class="step" data-step="19">
+    <div class="step-section">最後に</div>
+    <div class="step-question">その他ご意見・ご要望がありましたらお聞かせください。<span class="optional">任意</span></div>
+    <div class="step-note"></div>
+    <textarea class="text-input" id="q_comment" placeholder="自由にご記入ください"></textarea>
+  </div>
+
+  <!-- Complete -->
+  <div class="step" data-step="done">
+    <div class="complete-screen">
+      <div class="complete-icon">🎉</div>
+      <div class="complete-title">ご協力ありがとうございました！</div>
+      <div class="complete-msg">
+        いただいたご意見は<br>予約台帳の改善に<br>活かしてまいります。<br><br>
+        引き続きダイニーを<br>よろしくお願いいたします。
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-nav" id="footerNav">
+  <button class="btn btn-back" id="btnBack" style="display:none">戻る</button>
+  <button class="btn btn-next" id="btnNext">アンケートを始める</button>
+</div>
+
+<script>
+// ── Password Gate ──
+const HASH = '14d1b40d8b1330c571532a7082b6106667cc8e67554bdd7da3785a31e38f47de';
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+(function(){
+  if(sessionStorage.getItem('pw_ok')==='1'){
+    document.getElementById('pwOverlay').classList.add('hidden');
+  }
+  const inp=document.getElementById('pwInput'),btn=document.getElementById('pwBtn'),err=document.getElementById('pwError');
+  async function check(){
+    const h=await sha256(inp.value);
+    if(h===HASH){
+      sessionStorage.setItem('pw_ok','1');
+      document.getElementById('pwOverlay').classList.add('hidden');
+    } else {
+      err.textContent='パスワードが違います';inp.value='';inp.focus();
+    }
+  }
+  btn.addEventListener('click',check);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+})();
+
+const answers = {};
+let currentStep = 0;
+
+const steps = document.querySelectorAll('.step');
+const btnNext = document.getElementById('btnNext');
+const btnBack = document.getElementById('btnBack');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const progressCount = document.getElementById('progressCount');
+const footerNav = document.getElementById('footerNav');
+
+function getVisibleSteps() {
+  const list = [0, 1, 2, 3, 4, 5];
+  const ov = parseInt(answers.overall);
+  if (ov >= 50) list.push(6);
+  if (ov <= -50) list.push(7);
+  list.push(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19);
+  return list;
+}
+
+const sectionLabels = {
+  1:'ご回答者について', 2:'ご回答者について', 3:'ご利用状況', 4:'ご利用状況',
+  5:'総合評価', 6:'総合評価', 7:'総合評価',
+  8:'予約登録', 9:'予約登録',
+  10:'画面・UI', 11:'テーブル管理',
+  12:'業務フィット', 13:'業務フィット',
+  14:'比較', 15:'気になる点', 16:'ご要望',
+  17:'おすすめ度', 18:'最後に', 19:'最後に'
+};
+
+function showStep(stepNum) {
+  steps.forEach(s => s.classList.remove('active'));
+  const target = document.querySelector(`.step[data-step="${stepNum}"]`);
+  if (target) target.classList.add('active');
+  currentStep = stepNum;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const visible = getVisibleSteps();
+  const idx = visible.indexOf(stepNum);
+  if (stepNum === 0 || stepNum === 'done') {
+    progressWrap.style.display = 'none';
+  } else {
+    progressWrap.style.display = '';
+    const total = visible.length - 1; // exclude intro
+    const current = idx;
+    const pct = Math.min(100, Math.round((current / total) * 100));
+    progressFill.style.width = pct + '%';
+    progressCount.textContent = current + ' / ' + total;
+    progressLabel.textContent = sectionLabels[stepNum] || '';
+  }
+
+  if (stepNum === 0) {
+    btnBack.style.display = 'none';
+    btnNext.textContent = 'アンケートを始める';
+    btnNext.className = 'btn btn-next';
+    btnNext.disabled = false;
+    footerNav.style.display = '';
+  } else if (stepNum === 'done') {
+    footerNav.style.display = 'none';
+  } else {
+    btnBack.style.display = '';
+    if (stepNum === 19) {
+      btnNext.textContent = '送信する';
+      btnNext.className = 'btn btn-submit';
+    } else {
+      btnNext.textContent = '次へ';
+      btnNext.className = 'btn btn-next';
+    }
+    updateNextEnabled();
+  }
+}
+
+function updateNextEnabled() {
+  if (currentStep === 0) { btnNext.disabled = false; return; }
+  const requiredSingle = {
+    1:'store', 2:'role', 3:'frequency', 4:'prev_method',
+    5:'overall', 6:'satisfy_point', 7:'improve_point',
+    8:'booking', 9:'one_hand', 10:'ui', 11:'table',
+    12:'busy', 13:'share', 14:'comparison', 17:'nps'
+  };
+  if (requiredSingle[currentStep]) {
+    btnNext.disabled = !answers[requiredSingle[currentStep]];
+  } else {
+    btnNext.disabled = false;
+  }
+}
+
+function collectTextForStep(step) {
+  if (step === 1) {
+    answers.store = document.getElementById('q_store')?.value.trim() || '';
+    answers.respondent_name = document.getElementById('q_name')?.value.trim() || '';
+    return;
+  }
+  const textMap = {
+    6: ['satisfy_reason'], 7: ['improve_reason'],
+    14: ['prev_better'], 15: ['pain_other'],
+    16: ['wish_other'], 18: ['top_improvement'], 19: ['comment']
+  };
+  if (textMap[step]) {
+    textMap[step].forEach(key => {
+      const el = document.getElementById('q_' + key);
+      if (el) answers[key] = el.value.trim();
+    });
+  }
+}
+
+// ── Google Apps Script endpoint ──
+const ENDPOINT = '__GAS_ENDPOINT__';
+
+async function submitAnswers() {
+  btnNext.disabled = true;
+  btnNext.textContent = '送信中…';
+  try {
+    await fetch(ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify(answers),
+    });
+  } catch (e) {
+    console.error('Submit error:', e);
+  }
+  showStep('done');
+}
+
+function goNext() {
+  collectTextForStep(currentStep);
+  if (currentStep === 19) {
+    submitAnswers();
+    return;
+  }
+  const visible = getVisibleSteps();
+  const idx = visible.indexOf(currentStep);
+  if (idx < visible.length - 1) {
+    showStep(visible[idx + 1]);
+  }
+}
+
+function goBack() {
+  const visible = getVisibleSteps();
+  const idx = visible.indexOf(currentStep);
+  if (idx > 0) showStep(visible[idx - 1]);
+}
+
+btnNext.addEventListener('click', goNext);
+btnBack.addEventListener('click', goBack);
+
+// 単一選択のみのステップ → 選択後に自動で次へ
+const autoAdvanceSteps = new Set([2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 17]);
+
+function setupSingleChoice(containerId, answerKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.choice-item, .sat-btn, .yn-btn, .nps-btn').forEach(item => {
+    item.addEventListener('click', () => {
+      container.querySelectorAll('.choice-item, .sat-btn, .yn-btn, .nps-btn').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      answers[answerKey] = item.dataset.value;
+      updateNextEnabled();
+      if (autoAdvanceSteps.has(currentStep)) {
+        setTimeout(() => goNext(), 350);
+      }
+    });
+  });
+}
+
+function setupMultiChoice(containerId, answerKey) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.querySelectorAll('.choice-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('selected');
+      answers[answerKey] = Array.from(container.querySelectorAll('.choice-item.selected')).map(i => i.dataset.value);
+      const otherWrap = document.getElementById(containerId + '_other_wrap');
+      if (otherWrap) {
+        otherWrap.style.display = answers[answerKey].includes('その他') ? '' : 'none';
+      }
+      updateNextEnabled();
+    });
+  });
+}
+
+// Setup all
+// Step 1: 店舗名（必須）・お名前（任意）のバリデーション
+['q_store','q_name'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => {
+    answers.store = document.getElementById('q_store').value.trim();
+    answers.respondent_name = document.getElementById('q_name')?.value.trim() || '';
+    updateNextEnabled();
+  });
+});
+
+setupSingleChoice('q_role', 'role');
+setupSingleChoice('q_frequency', 'frequency');
+setupSingleChoice('q_prev_method', 'prev_method');
+setupSingleChoice('q_overall', 'overall');
+setupSingleChoice('q_satisfy_point', 'satisfy_point');
+setupSingleChoice('q_improve_point', 'improve_point');
+setupSingleChoice('q_booking', 'booking');
+setupSingleChoice('q_one_hand', 'one_hand');
+setupSingleChoice('q_ui', 'ui');
+setupSingleChoice('q_table', 'table');
+setupSingleChoice('q_busy', 'busy');
+setupSingleChoice('q_share', 'share');
+setupSingleChoice('q_comparison', 'comparison');
+setupMultiChoice('q_pain', 'pain');
+setupMultiChoice('q_wish', 'wish');
+setupSingleChoice('q_nps', 'nps');
+
+showStep(0);
+</script>
+</body>
+</html>
